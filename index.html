@@ -350,6 +350,23 @@
         grid-template-columns: 1fr;
       }
 
+      .side {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .panel {
+        order: 0;
+      }
+
+      .config {
+        order: 1;
+      }
+
+      .sequence-card {
+        order: 2;
+      }
+
       .sequence-list {
         max-height: 300px;
       }
@@ -512,7 +529,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card sequence-card">
           <div class="list-title">Secuencia completa</div>
           <ol id="sequenceList" class="sequence-list"></ol>
         </div>
