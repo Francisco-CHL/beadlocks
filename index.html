@@ -92,6 +92,7 @@
       display: grid;
       gap: 14px;
       justify-items: center;
+      padding: 16px;
     }
 
     #diagram {
@@ -216,16 +217,18 @@
       line-height: 1.3;
     }
 
+    .is-hidden {
+      display: none;
+    }
+
     .panel {
       display: grid;
       gap: 14px;
     }
 
-    .diagram-card .panel {
+    .panel-inline {
       width: min(620px, 100%);
-      background: #f8fafc;
-      border: 1px solid var(--line);
-      box-shadow: none;
+      padding: 8px 4px 0;
     }
 
     #metaLine {
@@ -263,6 +266,68 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+    }
+
+    .primary-controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      width: 100%;
+    }
+
+    .primary-controls button {
+      width: 100%;
+    }
+
+    .tools {
+      display: grid;
+      gap: 12px;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      appearance: none;
+      width: 42px;
+      height: 24px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      position: relative;
+      border: 1px solid #cbd5e1;
+      transition: background 0.2s ease;
+    }
+
+    .toggle input::after {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      top: 2px;
+      left: 2px;
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.2);
+      transition: transform 0.2s ease;
+    }
+
+    .toggle input:checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .toggle input:checked::after {
+      transform: translateX(18px);
+    }
+
+    .fab-hidden .fab {
+      display: none !important;
     }
 
     .fab {
@@ -379,8 +444,33 @@
         grid-template-columns: 1fr;
       }
 
+      .diagram-card {
+        padding: 10px 10px 12px;
+        gap: 10px;
+      }
+
+      .legend {
+        gap: 10px;
+        font-size: 0.8rem;
+      }
+
+      .legend-dot {
+        width: 10px;
+        height: 10px;
+      }
+
+      .legend-arrow {
+        width: 26px;
+        height: 10px;
+      }
+
+
       .wrap {
         padding-bottom: 110px;
+      }
+
+      .fab-hidden .wrap {
+        padding-bottom: 40px;
       }
 
       .fab {
@@ -502,16 +592,13 @@
           </span>
         </div>
 
-        <div class="card panel">
+        <div class="panel panel-inline">
           <div id="metaLine"></div>
           <div id="stageBadges"></div>
           <div id="stepLabel">Listo para iniciar.</div>
-          <div class="controls">
+          <div class="controls primary-controls">
             <button id="nextBtn" type="button">Siguiente</button>
             <button id="resetBtn" class="secondary" type="button">Reiniciar</button>
-            <button id="autoBtn" type="button" data-playing="false" aria-pressed="false">Auto</button>
-            <button id="pngBtn" class="ghost" type="button">Descargar PNG</button>
-            <button id="svgBtn" class="ghost" type="button">Descargar SVG</button>
           </div>
         </div>
       </section>
@@ -519,26 +606,11 @@
       <section class="side">
         <form id="configForm" class="card config">
           <h2>Configuracion</h2>
-          <div class="field">
-            <label for="boltCount">Cantidad de pernos</label>
-            <input id="boltCount" type="number" min="4" step="1" value="32" />
-            <span class="hint" id="patternNote"></span>
-          </div>
-          <div class="field">
-            <label>Etapas de torque (3 pasadas)</label>
-            <div class="stage-grid">
-              <input id="stage1" type="number" step="0.1" placeholder="Etapa 1" value="10" />
-              <input id="stage2" type="number" step="0.1" placeholder="Etapa 2" value="18" />
-              <input id="stage3" type="number" step="0.1" placeholder="Etapa 3" value="25" />
-            </div>
-          </div>
           <div class="inline">
             <div class="field">
-              <label for="unit">Unidad</label>
-              <select id="unit">
-                <option value="Nm" selected>Nm</option>
-                <option value="lb-ft">lb-ft</option>
-              </select>
+              <label for="boltCount">Cantidad de pernos</label>
+              <input id="boltCount" type="number" min="4" step="1" value="32" />
+              <span class="hint" id="patternNote"></span>
             </div>
             <div class="field">
               <label for="direction">Sentido</label>
@@ -548,9 +620,47 @@
               </select>
             </div>
           </div>
+          <span id="loosenHint" class="hint is-hidden">Desapriete en 3 pasadas: romper, aflojar, retirar. Esto evita deformar el aro y cargar un lado.</span>
+          <div id="torqueConfig">
+            <div class="inline">
+              <div class="field">
+                <label for="finalTorque">Torque final</label>
+                <input id="finalTorque" type="number" min="1" step="0.1" value="25" />
+              </div>
+              <div class="field">
+                <label for="unit">Unidad</label>
+                <select id="unit">
+                  <option value="Nm" selected>Nm</option>
+                  <option value="lb-ft">lb-ft</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Etapas de torque (% del final)</label>
+              <div class="stage-grid">
+                <input id="stagePct1" type="number" min="10" max="100" step="1" placeholder="Etapa 1" value="60" />
+                <input id="stagePct2" type="number" min="10" max="100" step="1" placeholder="Etapa 2" value="90" />
+                <input id="stagePct3" type="number" min="10" max="100" step="1" placeholder="Etapa 3" value="100" />
+              </div>
+              <span class="hint">Recomendado: 60% / 85-90% / 100%</span>
+            </div>
+          </div>
           <button class="ghost" type="submit">Aplicar cambios</button>
           <span class="hint">El patron se genera en estrella para cualquier N. Para 32 pernos coincide con el orden clasico.</span>
         </form>
+
+        <div class="card tools">
+          <div class="list-title">Herramientas</div>
+          <div class="controls">
+            <button id="autoBtn" type="button" data-playing="false" aria-pressed="false">Auto</button>
+            <button id="pngBtn" class="ghost" type="button">Descargar PNG</button>
+            <button id="svgBtn" class="ghost" type="button">Descargar SVG</button>
+          </div>
+          <label class="toggle">
+            <input id="fabToggle" type="checkbox" checked />
+            Boton flotante
+          </label>
+        </div>
 
         <div class="card sequence-card">
           <div class="list-title">Secuencia completa</div>
@@ -580,13 +690,16 @@
 
     const configForm = document.getElementById("configForm");
     const boltCountInput = document.getElementById("boltCount");
-    const stageInputs = [
-      document.getElementById("stage1"),
-      document.getElementById("stage2"),
-      document.getElementById("stage3")
+    const finalTorqueInput = document.getElementById("finalTorque");
+    const stagePctInputs = [
+      document.getElementById("stagePct1"),
+      document.getElementById("stagePct2"),
+      document.getElementById("stagePct3")
     ];
     const unitSelect = document.getElementById("unit");
     const directionSelect = document.getElementById("direction");
+    const torqueConfig = document.getElementById("torqueConfig");
+    const loosenHint = document.getElementById("loosenHint");
 
     const nextBtn = document.getElementById("nextBtn");
     const resetBtn = document.getElementById("resetBtn");
@@ -594,18 +707,17 @@
     const pngBtn = document.getElementById("pngBtn");
     const svgBtn = document.getElementById("svgBtn");
     const fabNextBtn = document.getElementById("fabNextBtn");
+    const fabToggle = document.getElementById("fabToggle");
 
     const size = 600;
     const cx = size / 2;
     const cy = size / 2;
-    const ringRadius = 210;
-    const innerRadius = 165;
-    const boltRadius = 12;
-    const labelRadius = 245;
+    let layout = getLayoutConfig();
 
     const state = {
       boltCount: 32,
       stages: [10, 18, 25],
+      finalTorque: 25,
       unit: "Nm",
       direction: "apriete",
       sequence: [],
@@ -616,6 +728,8 @@
 
     const boltMap = new Map();
     const boltPositions = new Map();
+    let resizeTimer = null;
+    const loosenStageLabels = ["romper", "aflojar", "retirar"];
     const listItems = [];
 
     function interleave(sequence) {
@@ -638,15 +752,40 @@
       return Math.max(4, Math.round(parsed));
     }
 
-    function parseStages() {
-      const values = stageInputs
-        .map((input) => Number(input.value))
-        .filter((value) => Number.isFinite(value) && value > 0);
-      if (values.length) return values;
-      stageInputs[0].value = "25";
-      stageInputs[1].value = "";
-      stageInputs[2].value = "";
-      return [25];
+    function getLayoutConfig() {
+      const isCompact = window.matchMedia("(max-width: 980px)").matches;
+      return {
+        ringRadius: isCompact ? 230 : 210,
+        innerRadius: isCompact ? 180 : 165,
+        boltRadius: isCompact ? 14 : 12,
+        labelRadius: isCompact ? 265 : 245
+      };
+    }
+
+    function parseFinalTorque() {
+      const value = Number(finalTorqueInput.value);
+      if (!Number.isFinite(value) || value <= 0) {
+        finalTorqueInput.value = "25";
+        return 25;
+      }
+      return value;
+    }
+
+    function parseStagePercents() {
+      const defaults = [60, 90, 100];
+      return stagePctInputs.map((input, index) => {
+        const value = Number(input.value);
+        if (!Number.isFinite(value) || value <= 0) {
+          input.value = String(defaults[index]);
+          return defaults[index];
+        }
+        return value;
+      });
+    }
+
+    function parseStages(finalTorque) {
+      const percents = parseStagePercents();
+      return percents.map((percent) => Number(((finalTorque * percent) / 100).toFixed(1)));
     }
 
     function shortenLine(ax, ay, bx, by, insetStart, insetEnd) {
@@ -677,7 +816,7 @@
         arrow.setAttribute("visibility", "hidden");
         return;
       }
-      const inset = boltRadius + 6;
+      const inset = layout.boltRadius + 6;
       const line = shortenLine(from.x, from.y, to.x, to.y, inset, inset + 2);
       arrow.setAttribute("x1", line.x1.toFixed(2));
       arrow.setAttribute("y1", line.y1.toFixed(2));
@@ -694,20 +833,20 @@
       svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
       ringOuter.setAttribute("cx", cx);
       ringOuter.setAttribute("cy", cy);
-      ringOuter.setAttribute("r", ringRadius);
+      ringOuter.setAttribute("r", layout.ringRadius);
       ringInner.setAttribute("cx", cx);
       ringInner.setAttribute("cy", cy);
-      ringInner.setAttribute("r", innerRadius);
+      ringInner.setAttribute("r", layout.innerRadius);
 
       for (let i = 0; i < state.boltCount; i += 1) {
         const number = i + 1;
 
         // Angle formula: start at -90deg and move clockwise in equal steps.
         const angle = (-Math.PI / 2) + i * (2 * Math.PI / state.boltCount);
-        const x = cx + ringRadius * Math.cos(angle);
-        const y = cy + ringRadius * Math.sin(angle);
-        const lx = cx + labelRadius * Math.cos(angle);
-        const ly = cy + labelRadius * Math.sin(angle);
+        const x = cx + layout.ringRadius * Math.cos(angle);
+        const y = cy + layout.ringRadius * Math.sin(angle);
+        const lx = cx + layout.labelRadius * Math.cos(angle);
+        const ly = cy + layout.labelRadius * Math.sin(angle);
 
         const group = document.createElementNS(SVG_NS, "g");
         group.classList.add("bolt");
@@ -716,7 +855,7 @@
         const circle = document.createElementNS(SVG_NS, "circle");
         circle.setAttribute("cx", x.toFixed(2));
         circle.setAttribute("cy", y.toFixed(2));
-        circle.setAttribute("r", boltRadius);
+        circle.setAttribute("r", layout.boltRadius);
 
         const text = document.createElementNS(SVG_NS, "text");
         text.setAttribute("x", lx.toFixed(2));
@@ -746,12 +885,18 @@
       });
     }
 
+    function getLoosenStageLabel(index) {
+      return loosenStageLabels[index] || "aflojar";
+    }
+
     function renderStageBadges() {
       stageBadges.innerHTML = "";
       state.stages.forEach((value, index) => {
         const badge = document.createElement("span");
         badge.className = "stage-badge" + (index === state.stageIndex ? " active" : "");
-        badge.textContent = `Etapa ${index + 1}: ${value} ${state.unit}`;
+        badge.textContent = state.direction === "desapriete"
+          ? `Etapa ${index + 1}: ${getLoosenStageLabel(index)}`
+          : `Etapa ${index + 1}: ${value} ${state.unit}`;
         stageBadges.appendChild(badge);
       });
     }
@@ -783,7 +928,9 @@
       setArrow(arrowNext, currentNumber, nextNumber);
 
       const stageValue = state.stages[state.stageIndex];
-      const stageText = `Etapa ${state.stageIndex + 1}/${state.stages.length} - ${stageValue} ${state.unit}`;
+      const stageText = state.direction === "desapriete"
+        ? `Etapa ${state.stageIndex + 1}/${state.stages.length} - ${getLoosenStageLabel(state.stageIndex)}`
+        : `Etapa ${state.stageIndex + 1}/${state.stages.length} - ${stageValue} ${state.unit}`;
 
       if (state.stepIndex === 0) {
         stepLabel.textContent = `${stageText} - listo para iniciar`;
@@ -793,7 +940,10 @@
         stepLabel.textContent = `${stageText} - etapa completada`;
       }
 
-      metaLine.textContent = `Pernos: ${state.boltCount} | Sentido: ${state.direction} | Patron en estrella`;
+      const torqueInfo = state.direction === "desapriete"
+        ? " | Etapas: romper/aflojar/retirar"
+        : ` | Torque final: ${state.finalTorque} ${state.unit}`;
+      metaLine.textContent = `Pernos: ${state.boltCount} | Sentido: ${state.direction} | Patron en estrella${torqueInfo}`;
       renderStageBadges();
     }
 
@@ -861,6 +1011,24 @@
       autoBtn.setAttribute("aria-pressed", isPlaying ? "true" : "false");
     }
 
+    function updateFabVisibility() {
+      const isHidden = !fabToggle.checked;
+      document.body.classList.toggle("fab-hidden", isHidden);
+      fabNextBtn.setAttribute("aria-hidden", isHidden ? "true" : "false");
+    }
+
+    function updateTorqueVisibility() {
+      const isLoosen = directionSelect.value === "desapriete";
+      torqueConfig.classList.toggle("is-hidden", isLoosen);
+      loosenHint.classList.toggle("is-hidden", !isLoosen);
+    }
+
+    function updateLayout() {
+      layout = getLayoutConfig();
+      buildDiagram();
+      render();
+    }
+
     function serializeSvg() {
       const clone = svg.cloneNode(true);
       clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -926,12 +1094,16 @@
     }
 
     function applyConfig() {
+      updateTorqueVisibility();
       const nextCount = sanitizeBoltCount(boltCountInput.value);
-      const stages = parseStages();
+      const finalTorque = parseFinalTorque();
+      const stages = parseStages(finalTorque);
       state.boltCount = nextCount;
       state.stages = stages;
+      state.finalTorque = finalTorque;
       state.unit = unitSelect.value;
       state.direction = directionSelect.value;
+      layout = getLayoutConfig();
       state.sequence = buildSequence(state.boltCount, state.direction);
       state.stepIndex = 0;
       state.stageIndex = 0;
@@ -958,8 +1130,15 @@
     autoBtn.addEventListener("click", toggleAuto);
     svgBtn.addEventListener("click", downloadSvg);
     pngBtn.addEventListener("click", downloadPng);
+    fabToggle.addEventListener("change", updateFabVisibility);
+    directionSelect.addEventListener("change", updateTorqueVisibility);
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(updateLayout, 150);
+    });
 
     applyConfig();
+    updateFabVisibility();
   </script>
 </body>
 </html>
