@@ -221,6 +221,13 @@
       gap: 14px;
     }
 
+    .diagram-card .panel {
+      width: min(620px, 100%);
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
     #metaLine {
       color: var(--muted);
       font-size: 0.95rem;
@@ -256,6 +263,28 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+    }
+
+    .fab {
+      position: fixed;
+      right: calc(16px + env(safe-area-inset-right));
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      z-index: 30;
+      display: none;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: var(--accent);
+      color: #fff;
+      font-family: inherit;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      box-shadow: 0 16px 32px rgba(14, 116, 144, 0.25);
+    }
+
+    .fab:active {
+      transform: translateY(1px);
     }
 
     button {
@@ -350,21 +379,15 @@
         grid-template-columns: 1fr;
       }
 
-      .side {
-        display: flex;
-        flex-direction: column;
+      .wrap {
+        padding-bottom: 110px;
       }
 
-      .panel {
-        order: 0;
-      }
-
-      .config {
-        order: 1;
-      }
-
-      .sequence-card {
-        order: 2;
+      .fab {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
       }
 
       .sequence-list {
@@ -478,6 +501,19 @@
             Anterior
           </span>
         </div>
+
+        <div class="card panel">
+          <div id="metaLine"></div>
+          <div id="stageBadges"></div>
+          <div id="stepLabel">Listo para iniciar.</div>
+          <div class="controls">
+            <button id="nextBtn" type="button">Siguiente</button>
+            <button id="resetBtn" class="secondary" type="button">Reiniciar</button>
+            <button id="autoBtn" type="button" data-playing="false" aria-pressed="false">Auto</button>
+            <button id="pngBtn" class="ghost" type="button">Descargar PNG</button>
+            <button id="svgBtn" class="ghost" type="button">Descargar SVG</button>
+          </div>
+        </div>
       </section>
 
       <section class="side">
@@ -516,19 +552,6 @@
           <span class="hint">El patron se genera en estrella para cualquier N. Para 32 pernos coincide con el orden clasico.</span>
         </form>
 
-        <div class="card panel">
-          <div id="metaLine"></div>
-          <div id="stageBadges"></div>
-          <div id="stepLabel">Listo para iniciar.</div>
-          <div class="controls">
-            <button id="nextBtn" type="button">Siguiente</button>
-            <button id="resetBtn" class="secondary" type="button">Reiniciar</button>
-            <button id="autoBtn" type="button" data-playing="false" aria-pressed="false">Auto</button>
-            <button id="pngBtn" class="ghost" type="button">Descargar PNG</button>
-            <button id="svgBtn" class="ghost" type="button">Descargar SVG</button>
-          </div>
-        </div>
-
         <div class="card sequence-card">
           <div class="list-title">Secuencia completa</div>
           <ol id="sequenceList" class="sequence-list"></ol>
@@ -536,6 +559,8 @@
       </section>
     </main>
   </div>
+
+  <button id="fabNextBtn" class="fab" type="button" aria-label="Siguiente paso">Siguiente</button>
 
   <script>
     const SVG_NS = "http://www.w3.org/2000/svg";
@@ -568,6 +593,7 @@
     const autoBtn = document.getElementById("autoBtn");
     const pngBtn = document.getElementById("pngBtn");
     const svgBtn = document.getElementById("svgBtn");
+    const fabNextBtn = document.getElementById("fabNextBtn");
 
     const size = 600;
     const cx = size / 2;
@@ -927,6 +953,7 @@
     });
 
     nextBtn.addEventListener("click", nextStep);
+    fabNextBtn.addEventListener("click", nextStep);
     resetBtn.addEventListener("click", resetSteps);
     autoBtn.addEventListener("click", toggleAuto);
     svgBtn.addEventListener("click", downloadSvg);
